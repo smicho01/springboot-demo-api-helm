@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}-ui
+  labels:
+    app: {{ .Chart.Name }}-ui
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}-ui
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}-ui
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: {{ .Chart.Name }}-ui
+          image: sever3d/springboot-api-demo-ui
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 80
+          env:
+            - name: POSTGRESHOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secret
+                  key: POSTGRESHOST
+            - name: POSTGRESPORT
+              value: {{ .Values.env.POSTGRESPORT | quote }}
+            - name: POSTGRESUSER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secret
+                  key: POSTGRESUSER
+            - name: POSTGRESPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secret
+                  key: POSTGRESPASSWORD
+            - name: POSTGRESDB
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secret
+                  key: POSTGRESDB
+            - name: API_ITEM
+              value: http://demoapi-api1:9091
+          resources:
+            requests:
+              memory: '128Mi'
+              cpu: '200m'
+            limits:
+              memory: '512Mi'
+              cpu: '1000m'

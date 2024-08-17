@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}-api1
+  labels:
+    app: {{ .Chart.Name }}-api1
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}-api1
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}-api1
+    spec:
+      restartPolicy: Always
+      containers:
+        - name: {{ .Chart.Name }}-api1
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          env:
+            - name: POSTGRESHOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secret
+                  key: POSTGRESHOST
+            - name: POSTGRESPORT
+              value: {{ .Values.env.POSTGRESPORT | quote }}
+            - name: POSTGRESUSER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secret
+                  key: POSTGRESUSER
+            - name: POSTGRESPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secret
+                  key: POSTGRESPASSWORD
+            - name: POSTGRESDB
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secret
+                  key: POSTGRESDB
+            - name: API_ITEM
+              value: "http://demoapi-api2:9092"
+          resources:
+            requests:
+              memory: '128Mi'
+              cpu: '200m'
+            limits:
+              memory: '512Mi'
+              cpu: '1000m'
+      initContainers:
+        - name: database-migration
+          image: sever3d/springboot-api-demo-database:latest
+          imagePullPolicy: Always
+          env:
+            - name: POSTGRESHOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secret
+                  key: POSTGRESHOST
+            - name: POSTGRESPORT
+              value: {{ .Values.env.POSTGRESPORT | quote }}
+            - name: POSTGRESUSER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secret
+                  key: POSTGRESUSER
+            - name: POSTGRESPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secret
+                  key: POSTGRESPASSWORD
+            - name: POSTGRESDB
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secret
+                  key: POSTGRESDB
+          args:
+            - "--url=jdbc:postgresql://$(POSTGRESHOST):$(POSTGRESPORT)/$(POSTGRESDB)"
+            - "--username=$(POSTGRESUSER)"
+            - "--password=$(POSTGRESPASSWORD)"
+            - "--changeLogFile=changelog/db.changelog-main.yml"
+            - "--liquibaseSchemaName=demoapi"
+            - "update"
+
