@@ -28,3 +28,12 @@ Docker compose in that repo spins up 2 container for api:
 - demoapi-items
 
 The same app but on different ports. `PeronService.java` in the method `getPersonItems` makes Rest Template request to other instance of the API to get Person Items.  It could happen within the same service, but it was created like that for the purpose of having 2 K8S pods that iteracts with each other, but I was way too lazy to build totally different API , make repo for it, Docker Hub repo etc. 
+
+
+## When ucin CIVO K8S
+
+- Install Traefik v2 (LoadBalancer) on CIVO
+- Godaddy: create new A record with name `subdomain` and IP of the `LoadBalancer`
+
+## AWS RDS Settings
+- do not forget to add cluster IP to vps security group

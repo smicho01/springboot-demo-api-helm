@@ -51,8 +51,8 @@ spec:
               memory: '128Mi'
               cpu: '200m'
             limits:
-              memory: '512Mi'
-              cpu: '1000m'
+              memory: '256Mi'
+              cpu: '300m'
       initContainers:
         - name: database-migration
           image: sever3d/springboot-api-demo-database:latest
