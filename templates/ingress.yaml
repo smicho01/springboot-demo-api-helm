@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: demoapi-ingress
+  namespace: default
+spec:
+  rules:
+  - host: k8sdemo.semicorp.org
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: demoapi-ui
+            port:
+              number: 80
