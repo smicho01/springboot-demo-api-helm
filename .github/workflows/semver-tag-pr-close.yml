@@ -1,0 +1,43 @@
+name: Semver Repo on Pull Request Close
+# Action will add repo tag depending on the Pull Request label (major, minor, patch , skip-release [no tag])
+on:
+  pull_request:
+    types: [ closed ]
+
+jobs:
+  semver_tag:
+    permissions:
+      contents: write
+    name: Semver tag repo
+    if: |
+      github.event.pull_request.merged == true &&
+      contains(github.event.pull_request.labels.*.name, 'skip-release') == false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      ##### Semantically tag repository and return given tag
+      # Label can be : major,minor,patch or skip-release
+      - name: Parse the SemVer label (semver)
+        id: label
+        uses: UKHomeOffice/match-label-action@v1
+        with:
+          labels: minor,major,patch
+          mode: singular
+
+      - name: Calculate SemVer value (semver)
+        id: calculate
+        uses: UKHomeOffice/semver-calculate-action@v1
+        with:
+          increment: ${{ steps.label.outputs.matchedLabels }}
+          github_token:  ${{ secrets.GITHUB_TOKEN }}
+          default_to_highest: true
+
+      - name: Tag Repository (semver)
+        uses: UKHomeOffice/semver-tag-action@v3
+        with:
+          tag: ${{ steps.calculate.outputs.version }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          move_major_tag: ${{ inputs.moveMajor || 'true' }}
+
